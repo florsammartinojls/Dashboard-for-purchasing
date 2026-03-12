@@ -26,7 +26,7 @@ export default function CoreTab({ data, stg, hist, daily, coreId, onBack, goBund
   const uCh = useMemo(() => { const byMY = {}; bSHF.forEach(h => { const k = h.y + "-" + h.m; if (!byMY[k]) byMY[k] = { y: h.y, m: h.m, u: 0 }; byMY[k].u += h.units }); return MN.map((m, i) => { const r = { month: m }; uYrs.forEach(y => { const x = byMY[y + "-" + (i + 1)]; r["u_" + y] = x?.u ?? null }); return r }) }, [bSHF, uYrs]);
   const uYTot = useMemo(() => { const t = {}; uYrs.forEach(y => { t[y] = bSHF.filter(h => h.y === y).reduce((s, x) => s + x.units, 0) }); return t }, [bSHF, uYrs]);
   const ai = core ? cAI(core) : 0; const status = core ? gS(core.doc, lt, core.buf || 14, stg) : "healthy";
-  const nq = core ? cNQ(core, tg) : 0; const oq = core ? cOQ(nq, core.moq) : 0; const da = core ? cDA(core, oq) : 0;
+  const nq = core ? cNQ(core, tg) : 0; const oq = core ? cOQ(nq, core.moq, core.casePack) : 0; const da = core ? cDA(core, oq) : 0;
   const seas = core ? cSeas(core.id, hist?.coreInv || []) : null;
   const pipe = core ? [{ l: "Raw", v: core.raw }, { l: "Inb", v: core.inb }, { l: "PP", v: core.pp }, { l: "JFN", v: core.jfn }, { l: "PQ", v: core.pq }, { l: "JI", v: core.ji }, { l: "FBA", v: core.fba }] : []; const mxP = Math.max(...pipe.map(p => p.v), 1);
   const tBD = useMemo(() => cBA.reduce((s, b) => s + (b.cd || 0), 0), [cBA]);
