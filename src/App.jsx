@@ -144,7 +144,9 @@ export default function App() {
     else { setPrevTab(tab); setCoreId(id); setTab("core") }
   }, [tab]);
   const goBundle = useCallback(id => { setPrevTab(tab); setBundleId(id); setTab("bundle") }, [tab]);
-  const goVendor = useCallback(n => { setInitV(n); setTab("purchasing") }, []);
+  const goVendor = useCallback(n => {
+    window.open(window.location.pathname + '?vendor=' + encodeURIComponent(n), '_blank');
+  }, []);
   const clearIV = useCallback(() => setInitV(null), []);
   const handleBackFromCore = useCallback(() => setTab("purchasing"), []);
   const handleBackFromBundle = useCallback(() => { if (prevTab === "core" && coreId) setTab("core"); else setTab("purchasing") }, [prevTab, coreId]);
