@@ -176,3 +176,60 @@ export function SlidePanel({ open, onClose, children }) {
     </div>
   );
 }
+
+// === Workflow Note Chip ===
+const WF_STATUSES = ["Buy", "Reviewing", "Ignore", "Done", ""];
+const WF_COLORS = { Buy: "bg-emerald-500/20 text-emerald-400", Reviewing: "bg-amber-500/20 text-amber-400", Ignore: "bg-red-500/20 text-red-400", Done: "bg-blue-500/20 text-blue-400" };
+
+export function WorkflowChip({ id, type, workflow, onSave, onDelete, buyer }) {
+  const [open, setOpen] = useState(false);
+  const existing = (workflow || []).find(w => w.id === id);
+  const [status, setStatus] = useState(existing?.status || "");
+  const [note, setNote] = useState(existing?.note || "");
+  const [ignoreUntil, setIgnoreUntil] = useState(existing?.ignoreUntil || "");
+
+  useEffect(() => {
+    const ex = (workflow || []).find(w => w.id === id);
+    if (ex) { setStatus(ex.status || ""); setNote(ex.note || ""); setIgnoreUntil(ex.ignoreUntil || "") }
+  }, [workflow, id]);
+
+  const save = () => {
+    onSave({ id, type, status, note, ignoreUntil, updatedBy: buyer || "" });
+    setOpen(false);
+  };
+  const del = () => { onDelete({ id }); setOpen(false); setStatus(""); setNote(""); setIgnoreUntil("") };
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className={`text-xs px-1.5 py-0.5 rounded ${existing?.status ? WF_COLORS[existing.status] || "bg-gray-700 text-gray-300" : "bg-gray-800 text-gray-500 hover:text-gray-300"}`}>
+        {existing?.status ? <>{existing.status}{existing.note ? " · " + existing.note.substring(0, 15) + (existing.note.length > 15 ? "…" : "") : ""}</> : "📝"}
+      </button>
+    );
+  }
+
+  return (
+    <div className="absolute z-50 mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-3 w-64" onClick={e => e.stopPropagation()}>
+      <div className="space-y-2">
+        <div>
+          <label className="text-xs text-gray-500 block mb-1">Status</label>
+          <div className="flex gap-1 flex-wrap">{WF_STATUSES.filter(Boolean).map(s => (
+            <button key={s} onClick={() => setStatus(s)} className={`text-xs px-2 py-1 rounded ${status === s ? WF_COLORS[s] : "bg-gray-800 text-gray-400"}`}>{s}</button>
+          ))}</div>
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 block mb-1">Note</label>
+          <input type="text" value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Negotiating price..." className="bg-gray-800 border border-gray-600 text-white rounded px-2 py-1 w-full text-xs" />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 block mb-1">Ignore Until</label>
+          <input type="date" value={ignoreUntil} onChange={e => setIgnoreUntil(e.target.value)} className="bg-gray-800 border border-gray-600 text-white rounded px-2 py-1 w-full text-xs" />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button onClick={save} className="flex-1 bg-blue-600 text-white text-xs rounded py-1">Save</button>
+          {existing && <button onClick={del} className="bg-red-600/20 text-red-400 text-xs rounded py-1 px-2">Delete</button>}
+          <button onClick={() => setOpen(false)} className="bg-gray-700 text-gray-300 text-xs rounded py-1 px-2">Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
