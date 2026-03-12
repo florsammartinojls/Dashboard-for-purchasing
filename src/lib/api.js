@@ -14,6 +14,32 @@ function jp(u, t = 90000) {
   });
 }
 
-export function api(action) {
-  return jp(API + '?action=' + action + '&_t=' + Date.now());
+const CACHE_TTL = 5 * 60 * 1000; // 5 min session cache
+
+function getCached(key) {
+  try {
+    const raw = sessionStorage.getItem('fba_' + key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) return null;
+    return data;
+  } catch { return null }
+}
+
+function setCache(key, data) {
+  try { sessionStorage.setItem('fba_' + key, JSON.stringify({ data, ts: Date.now() })) } catch { }
+}
+
+export async function api(action) {
+  // Return cached data instantly, then refresh in background
+  const cached = getCached(action);
+  const fresh = jp(API + '?action=' + action + '&_t=' + Date.now());
+  if (cached) {
+    // Still fetch fresh in background to update cache
+    fresh.then(d => setCache(action, d)).catch(() => {});
+    return cached;
+  }
+  const d = await fresh;
+  setCache(action, d);
+  return d;
 }
